@@ -1,117 +1,95 @@
-# DockerGuvenlikTarama
-Sanallaştırma dersi için sunumum.
-## 1- Trivy
+# DSEC Güvenlik Araçları Tanıtımı
 
-"Ilk gosterecegim arac Trivy. Bu arac acik kaynakli ve oldukca hizli calisiyor. Docker imajlarini, dosya sistemlerini, bagimliliklari ve yapilandirma dosyalarini tarayabiliyor. Ben simdi imaj taramasi ornegiyle baslayacagim."
+## 1. Trivy
 
-```bash
-docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image alpine:3.7
-```
+Trivy, açık kaynaklı ve hızlı bir güvenlik tarama aracıdır. Docker imajlarını, dosya sistemlerini, bağımlılıkları ve yapılandırma dosyalarını tarayabilir.
 
-"Su anda Trivy, alpine:3.7 imajini tariyor. Bu surum eski oldugu icin icerisinde bilinen zafiyetler mevcut. Trivy bu zafiyetleri CVE veritabanlarina gore cikaracak."
-
-### CIKTI GELINCE
-
-"Burada her satirda bir guvenlik acigi goruyorsunuz. Hemen yaninda bu acigin hangi paketle iliskili oldugu, hangi surumde oldugu ve risk seviyesi var."
-
-"Risk seviyesi genellikle LOW, MEDIUM, HIGH, CRITICAL gibi kategorilere ayrilir. Bu kritik olanlar genelde sistem ele gecirme ya da uzaktan kod calistirma gibi ciddi aciklardir."
-
-### KUBERNETES CONFIG TARAMA
+### Docker İmaj Taraması
 
 ```bash
-trivy config deployment.yml
+docker run aquasec/trivy image <taranacak_imaj>
 ```
 
-"Simdi bir Kubernetes deployment.yaml dosyasini tarayacagim. Bu dosyada `privileged: true` ayari var, yani container root yetkileriyle calisiyor. Trivy bunu 'HIGH' risk olarak rapor edecek."
+Örnek: `alpine:3.7` imajı tarandığında, bu sürümdeki bilinen güvenlik açıkları CVE veritabanlarına göre listelenir.
+
+Çıktıda:
+- Her satırda bir güvenlik açığı yer alır.
+- Açığın ilgili olduğu paket, sürüm bilgisi ve risk seviyesi (LOW, MEDIUM, HIGH, CRITICAL) gösterilir.
+- Kritik seviyeler genellikle sistem ele geçirme veya uzaktan kod çalıştırma gibi ciddi açıklardır.
+
+### Kubernetes Config Taraması
+
+```bash
+./trivy.exe config deployment.yml
+```
+
+Örneğin `deployment.yaml` içinde `privileged: true` ayarı varsa, Trivy bunu "HIGH" risk olarak raporlar.
 
 ---
 
-## 2- Grype
+## 2. Grype
 
-"Siradaki aracimiz Grype. Bu arac, container imajlarinin icindeki paketleri tarayarak zafiyetleri listeler. Trivy’ye benzer, ama SBOM desteklemesi gibi bazi teknik farklari var. Simdi kisa bir ornekle gosterecegim."
+Grype, container imajları içindeki paketleri tarayarak zafiyetleri listeler. Trivy’ye benzer işlevsellik sunar ancak bazı teknik farklılıkları vardır.
 
 ### SBOM Nedir?
 
-"SBOM, yani *Software Bill of Materials* (Yazilim Malzeme Listesi), bir yazilimin icerisinde hangi bilesenlerin bulundugunu detayli olarak listeleyen makine tarafindan okunabilir bir belgedir. Tipki bir urunun icindekiler listesi gibi, bir yazilimin hangi acik kaynak kutuphaneleri, versiyonlari ve bagimliliklari icerdigini belirtir. Guvenlik ve lisans uyumlulugu gibi konularda seffaflik saglar."
+**SBOM (Software Bill of Materials)**, bir yazılımın içinde bulunan tüm bileşenlerin, bağımlılıkların ve kütüphanelerin listelendiği bir dökümandır. Yazılımın “içindekiler listesi” olarak düşünülebilir. SBOM, yazılım bileşenlerinin şeffafı bir şekilde görülmesini ve güvenlik açıklarının daha etkin bir şekilde izlenmesini sağlar.
 
-"Grype bu listeyi dogrudan kullanabilir, yani imaji taramadan da elinizdeki bilesen listesine gore zafiyet analizi yapabilirsiniz."
+Grype, bu SBOM dosyalarını doğrudan analiz edebilir.
 
-### GRYPE IMAJ TARAMA
-
-```bash
-grype alpine:3.7
-```
-
-"Bu komut, Alpine Linux 3.7 imajinin icindeki paketleri analiz ediyor. Grype, paket yoneticisinin veritabanina gore hangi CVE’lerin bulundugunu listeliyor."
-
-"Trivy de benzer sekilde CVE listesi verir, ancak Trivy ayrica config dosyalarini ve Kubernetes YAML’larini da tarayabilir. Grype sadece imaj icerigine odaklanir."
-
-### SBOM ile Grype Taramasi
+### Kullanım
 
 ```bash
-trivy image --format cyclonedx --output alpine-sbom.json alpine:3.7
-grype sbom:alpine-sbom.json
+./grype.exe <taranacak_imaj>
 ```
 
-"Ilk komut trivy araciyla bir SBOM olusturuyor. Ikinci komut ise Grype’in bu dosyaya gore tarama yapmasini sagliyor. Bu yontem CI/CD boru hatlarina entegre edilmek icin idealdir."
+Ayrıca SBOM ile tarama yapmak için:
 
-"Grype’in avantaji, SBOM dosyalarini desteklemesi ve ciktisinin sade olmasi. Trivy’ye kiyasla biraz daha gelistirici odakli bir yapi sunuyor."
+```bash
+./trivy.exe image --format cyclonedx --output alpine-sbom.json alpine:3.7
+./grype.exe sbom:alpine-sbom.json
+```
 
 ---
 
-## 3- Docker Scout
+## 3. Docker Scout
 
-"Simdi gosterecegim arac Docker Scout. Bu arac, Docker tarafindan gelistirilmis ve dogrudan Docker CLI’ye entegre edilmis bir guvenlik analiz aracidir."
+Docker Scout, Docker tarafından geliştirilmiş ve Docker CLI’ye entegre edilmiş bir güvenlik analiz aracıdır.
 
-"Docker Hub’daki imajlar uzerinde guvenlik taramasi yapar ve zafiyetleri dogrudan terminalden gorumlememizi saglar."
-
-### HIZLI GORUNUM
+### Hızlı Tarama
 
 ```bash
 docker scout quickview alpine:3.7
 ```
 
-"Bu komutla alpine:3.7 imajinin guvenlik durumunu hizli sekilde gorumleyebiliyorum. 'Quickview' ciktisinda one cikan zafiyetler, imaj katmanlari ve riskli paketler listeleniyor."
+Bu komut, zafiyetleri, imaj katmanlarını ve riskli paketleri listeler.
 
-### CIKTI GELINCE
-
-"Surada imajda kac adet zafiyet oldugunu goruyoruz. Yanlarinda bu zafiyetlerin kritiklikleri de belirtilmis: ornegin 5 Critical, 12 High gibi."
-
-"Her zafiyetin hangi paketten kaynaklandigi ve hangi imaj katmaninda bulundugu da listeleniyor."
-
-### CVE LISTESI GORUNTULEME
+### Detaylı CVE Listesi
 
 ```bash
 docker scout cves alpine:3.7
 ```
 
-"Bu komut ise tam CVE listesini getiriyor. Trivy veya Grype ile benzer sekilde, her bir zafiyetin CVE numarasi, risk seviyesi, ve cozum onerileri gosteriliyor."
-
-"Scout'un avantaji dogrudan Docker CLI icinde yer almasi, ayrica hicbir ek arac yuklemeden hizlica temel guvenlik analizi yapilabilmesidir. Gelistiriciler icin en kolay, hizli ve Docker ortamina entegre bir cozumdur."
+Scout'un özelliği, Docker ortamına doğrudan entegre çalışması ve ek bir aracın kurulumuna gerek kalmadan analiz yapabilmesidir.
 
 ---
 
-## 4- Snyk CLI
+## 4. Snyk CLI
 
-"Son olarak gosterecegim arac Snyk CLI. Bu arac ozellikle gelistiricilere yonelik olarak gelistirilmistir. Yazilim bagimliliklarini, Docker imajlarini ve kod tabanini tarayabilir. Ayrica hem terminalden hem de web arayuzu uzerinden kullanilabilir."
+Snyk CLI, geliştiricilere yönelik bir güvenlik aracıdır. Docker imajlarını, yazılım bağımlılıklarını ve kod tabanlarını analiz edebilir.
 
-"Simdi Docker imaji taramasi ornegini gosterecegim."
-
-### IMAJ TARAMASI
+### Docker İmaj Taraması
 
 ```bash
-snyk test --docker alpine:3.7
+./snyk-win.exe test --docker alpine:3.7
 ```
 
-"Bu komut, alpine:3.7 imaji uzerinde bir tarama yapiyor. Snyk, imajin icindeki paketleri analiz edip bilinen zafiyetleri listeleyecek. Ek olarak cozum onerileri ve sabit surumler de sunacak."
+Taramada, CVE’ler, ilgili paketler ve çözümler sunulur.
 
-### CIKTI GELINCE
+Örneğin:
+- CVE-2019-14697 → musl paketi
+- Risk seviyeleri: High, Medium, Low
+- Hangi sürümlerde düzeltildiği belirtilir
 
-"Burada listelenen her bir CVE, etkilenen paketle birlikte gosteriliyor. Ornegin: CVE-2019-14697 → musl paketi."
-
-"Yaninda risk seviyesi yaziyor: High, Medium, Low. Ayrica Snyk bu zafiyetin hangi surumde duzeldigini de gosteriyor."
-
-"Snyk’in farki, sadece tespit degil, ayni zamanda cozum onerisi sunmasi. Gelistirici olarak hangi versiyona guncellemeniz gerektigini burada dogrudan gorebiliyorsunuz."
-
-"Snyk ozellikle yazilim projelerine entegre edildiginde cok guclu. Node.js, Java, Python gibi dillerdeki projelerde bagimliliklari da tarayabiliyor. Ayrica CI/CD sistemlerine entegre edip otomatik tarama yapilabilir."
+Snyk, Node.js, Java, Python gibi projelerde de kullanılabilir ve CI/CD sistemlerine entegre edilebilir.
 

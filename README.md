@@ -54,7 +54,7 @@ Ayrıca SBOM ile tarama yapmak için:
 
 ## 3. Docker Scout
 
-Docker Scout, Docker tarafından geliştirilmiş ve Docker CLI’ye entegre edilmiş bir güvenlik analiz aracıdır.
+Docker Scout, Docker tarafından geliştirilmiş ve Docker Desktop'a entegre edilmiş bir güvenlik analiz aracıdır.
 
 ### Hızlı Tarama
 
